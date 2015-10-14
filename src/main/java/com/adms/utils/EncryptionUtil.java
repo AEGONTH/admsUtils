@@ -9,16 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 public class EncryptionUtil {
 
 	private static EncryptionUtil instance;
-	private static MessageDigest digester;
 	private static final String MD5 = "MD5";
-	
-	static {
-		try {
-			digester = MessageDigest.getInstance(MD5);
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	public static EncryptionUtil getInstance() {
 		if(instance == null) {
@@ -27,22 +18,19 @@ public class EncryptionUtil {
 		return instance;
 	}
 	
-	public String encrypt(String str) {
-		if(StringUtils.isEmpty(str)) throw new IllegalArgumentException("String for encrypt is null");
+	public String md5(String val) throws NoSuchAlgorithmException {
+		if(StringUtils.isEmpty(val)) throw new IllegalArgumentException("String for encrypt is null");
+		MessageDigest md = MessageDigest.getInstance(MD5);
+		md.update(val.getBytes());
 		
-		digester.update(str.getBytes());
-		byte[] hash = digester.digest();
-		
-		StringBuffer hexString = new StringBuffer();
-		for(int i = 0; i < hash.length; i++) {
-			if((0xff & hash[i]) < 0x10) {
-				hexString.append("0" + Integer.toHexString((0xFF & hash[i])));
-			} else {
-				hexString.append(Integer.toHexString(0xFF & hash[i]));
-			}
-		}
-		
-		return hexString.toString();
+		byte[] bytes = md.digest();
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < bytes.length; i++) sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+		return sb.toString();
+	}
+	
+	public String md5(String val, String salt) throws NoSuchAlgorithmException {
+		return md5(val.concat(salt));
 	}
 	
 }
